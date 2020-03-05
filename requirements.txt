@@ -1,0 +1,4 @@
+asyncio==3.4.3
+pyfiglet==0.8.post1
+AWSIoTPythonSDK==1.4.7
+
