@@ -105,8 +105,60 @@ If the solution runs without error, you should notice the new certificates saved
 }
 ```
 
-
-
+#### Sample provisioning template JSON
+``` json
+{
+  "Parameters": {
+    "SerialNumber": {
+      "Type": "String"
+    },
+    "AWS::IoT::Certificate::Id": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "certificate": {
+      "Properties": {
+        "CertificateId": {
+          "Ref": "AWS::IoT::Certificate::Id"
+        },
+        "Status": "Active"
+      },
+      "Type": "AWS::IoT::Certificate"
+    },
+    "policy": {
+      "Properties": {
+        "PolicyName": "full_citizen_role"
+      },
+      "Type": "AWS::IoT::Policy"
+    },
+    "thing": {
+      "OverrideSettings": {
+        "AttributePayload": "MERGE",
+        "ThingGroups": "DO_NOTHING",
+        "ThingTypeName": "REPLACE"
+      },
+      "Properties": {
+        "AttributePayload": {},
+        "ThingGroups": [],
+        "ThingName": {
+          "Fn::Join": [
+            "",
+            [
+              "born_",
+              {
+                "Ref": "SerialNumber"
+              }
+            ]
+          ]
+        }
+      },
+      "Type": "AWS::IoT::Thing"
+    }
+  },
+  "DeviceConfiguration": {}
+}
+```
 
 
 ## License
