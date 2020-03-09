@@ -1,5 +1,8 @@
 # ------------------------------------------------------------------------------
-#  Consuming sample, demonstrating how a device process would leverage the provisioning class.
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0 
+# -----------------------------------------
+# Consuming sample, demonstrating how a device process would leverage the provisioning class.
 #  The handler makes use of the asycio library and therefore requires Python 3.7.
 #
 #  Prereq's: 

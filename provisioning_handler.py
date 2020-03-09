@@ -1,4 +1,7 @@
 # ------------------------------------------------------------------------------
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0 
+# ------------------------------------------------------------------------------
 # Demonstrates how to call/orchestrate AWS fleet provisioning services
 #  with a provided bootstrap certificate (aka - provisioning claim cert).
 #   
