@@ -13,10 +13,6 @@ To aid in the adoption and utilization of the functionality mentioned above, thi
 
 
 ## Dependencies of the solution
-
-
-### At present, the beta ONLY works in US-EAST-1!!
-
 In order to run the client solution seamlessly you must configure dependencies in 2 dimensions:
 AWS Console / Edge Device
 
