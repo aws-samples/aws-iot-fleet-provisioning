@@ -25,8 +25,7 @@ AWS Console / Edge Device
 1. ! Don't forget to download a root.ca and select the button to *ACTIVATE* your certificate on the same screen.
 
 #### Create Provisioning Template / Attach Policies
-1. Still in the IoT Core console, make sure you are in us-east-1.
-1. Select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
+1. In console, select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
 1. Name your provisioning template (e.g. - birthing_template). Remember this name!
 1. Create or associate a basic IoT Role with this template. (at least - AWSIoTThingsRegistration, AWSIoTLogging)
 1. *Leave optional settings unchecked for now.*
