@@ -29,7 +29,7 @@ AWS Console / Edge Device
 #### Create Provisioning Template / Attach Policies
 1. In console, select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
 1. Name your provisioning template (e.g. - birthing_template). Remember this name!
-1. Create or associate a basic IoT Role with this template. (at least - AWSIoTThingsRegistration, AWSIoTLogging)
+1. Create or associate a basic IoT Role with this template. (at least - AWSIoTThingsRegistration)
 1. *Leave optional settings unchecked for now.*
 1. Select Next
 1. Create or select the policy that you wish fully provisioned devices to have. (see sample open policy below)
