@@ -13,6 +13,8 @@ To aid in the adoption and utilization of the functionality mentioned above, thi
 
 
 ## Dependencies of the solution
+* Intended to be compatible with AWS Greengrass ... this solution depends on a python library (asyncio) which is only available w/ python 3.7 and above. Please ensure your solution has at least this version.
+
 In order to run the client solution seamlessly you must configure dependencies in 2 dimensions:
 AWS Console / Edge Device
 
