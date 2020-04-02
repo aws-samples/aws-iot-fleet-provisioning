@@ -13,9 +13,9 @@ To aid in the adoption and utilization of the functionality mentioned above, thi
 
 
 ## Dependencies of the solution
+* Intended to be compatible with AWS Greengrass ... this solution depends on a python library (asyncio) which is only available w/ python 3.7 and above. Please ensure your solution has at least this version.
 
-
-### At present, the beta ONLY works in US-EAST-1!!
+* It is recommended to use the general sample provisioning template below if you want the provisioning template to create a thing in IoT Core, Activate the cert, etc. Specifically, ensure the THING node attributes are included in YOUR template if you don't use it verbatim.
 
 In order to run the client solution seamlessly you must configure dependencies in 2 dimensions:
 AWS Console / Edge Device
@@ -29,10 +29,9 @@ AWS Console / Edge Device
 1. ! Don't forget to download a root.ca and select the button to *ACTIVATE* your certificate on the same screen.
 
 #### Create Provisioning Template / Attach Policies
-1. Still in the IoT Core console, make sure you are in us-east-1.
-1. Select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
+1. In console, select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
 1. Name your provisioning template (e.g. - birthing_template). Remember this name!
-1. Create or associate a basic IoT Role with this template. (at least - AWSIoTThingsRegistration, AWSIoTLogging)
+1. Create or associate a basic IoT Role with this template. (at least - AWSIoTThingsRegistration)
 1. *Leave optional settings unchecked for now.*
 1. Select Next
 1. Create or select the policy that you wish fully provisioned devices to have. (see sample open policy below)
