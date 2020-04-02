@@ -39,9 +39,11 @@ if __name__ == "__main__":
 
 	# Demo Theater
 	f = Figlet(font='slant')
-	print(f.renderText('F o u n d r y'))
+	print(f.renderText('      F l e e t'))
+	print(f.renderText('Provisioning'))
 	print(f.renderText('----------'))
 
+	
 	# Provided callback for provisioning method
 	def callback(payload):
 		print(payload)
