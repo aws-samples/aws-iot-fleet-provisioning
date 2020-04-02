@@ -6,7 +6,7 @@
 #  The handler makes use of the asycio library and therefore requires Python 3.7.
 #
 #  Prereq's: 
-#      1) In us-east-1, a provisioning claim certificate has been cut from AWSIoT.
+#      1) A provisioning claim certificate has been cut from AWSIoT.
 #	   2) A restrictive "birth" policy has been associated with the certificate.
 #      3) A provisioning template was created to manage the activities to be performed during new certificate activation.
 #	   4) The claim certificate was placed securely on the device fleet and shipped to the field. (along with root/ca and private key)
