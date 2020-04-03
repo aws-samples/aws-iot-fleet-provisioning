@@ -13,7 +13,9 @@ To aid in the adoption and utilization of the functionality mentioned above, thi
 
 
 ## Dependencies of the solution
-* Intended to be compatible with AWS Greengrass ... this solution depends on a python library (asyncio) which is only available w/ python 3.7 and above. Please ensure your solution has at least this version.
+* Intended to be compatible with AWS Greengrass ... this solution depends on a python library (asyncio) which is __only available w/ python 3.7 and above.__ Please ensure your solution has at least this version.
+
+* With any connection to IoT Core, you will require the addition of a root CA. We have included a root ca in the repo for convienence but we can't gaurantee it will remain current. You can download/replace the contents from the latest contents here: https://www.amazontrust.com/repository/AmazonRootCA1.pem
 
 * It is recommended to use the general sample provisioning template below if you want the provisioning template to create a thing in IoT Core, Activate the cert, etc. Specifically, ensure the THING node attributes are included in YOUR template if you don't use it verbatim.
 
@@ -62,6 +64,46 @@ PROVISIONING_TEMPLATE_NAME = my_template (e.g. - birthing_template)
 1. > python3 main.py
 
 If the solution runs without error, you should notice the new certificates saved in the same directory as the bootstrap certs. You will also notice the creation of THINGS in the IoT Registry that are activated. As this solution is only meant to demo the solution, each subsequent run will use the original bootstrap cert to request new credentials, and therfore also create another thing. Thing names are based on a dynamically generated serial number presented in the code.
+
+### See below for examples of necessary artifacts as part of this solution:
+
+#### Sample "birth_policy" applied to a bootstrap certificate with permissions limited only to provisioning api's.
+Note: If using the fleet provisioning feature in the console, this policy will be applied to the certificate automatically.
+Also, if you intend to copy/paste the below policy note the arn's and change the region/account number as appropriate.
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:Connect"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "iot:Publish",
+        "iot:Receive"
+      ],
+      "Resource": [
+        "arn:aws:iot:us-east-1:XXXXXXXXXXXX:topic/$aws/certificates/create/*",
+        "arn:aws:iot:us-east-1:XXXXXXXXXXXX:topic/$aws/provisioning-templates/birthing_template/provision/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": "iot:Subscribe",
+      "Resource": [
+        "arn:aws:iot:us-east-1:XXXXXXXXXXXX:topicfilter/$aws/certificates/create/*",
+        "arn:aws:iot:us-east-1:XXXXXXXXXXXX:topicfilter/$aws/provisioning-templates/birthing_template/provision/*"
+      ]
+    }
+  ]
+}
+
+
 
 
 #### Sample Policy for fully provisioned devices - aptly named 'full_citizen_role'
