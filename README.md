@@ -60,7 +60,7 @@ SECURE_KEY = xxxxxxxxxx-private.pem.key
 IOT_ENDPOINT = xxxxxxxxxx-ats.iot.us-east-1.amazonaws.com
 PROVISIONING_TEMPLATE_NAME = my_template (e.g. - birthing_template)
 ```
-#### Run solution
+#### Run solution (may need to use *sudo* if storing certificates in a protected dir)
 1. > python3 main.py
 
 If the solution runs without error, you should notice the new certificates saved in the same directory as the bootstrap certs. You will also notice the creation of THINGS in the IoT Registry that are activated. As this solution is only meant to demo the solution, each subsequent run will use the original bootstrap cert to request new credentials, and therfore also create another thing. Thing names are based on a dynamically generated serial number presented in the code.
