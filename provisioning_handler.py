@@ -46,6 +46,21 @@ class ProvisioningHandler:
 		# seed to generate Thing names in IoTCore. Simulating here.
 		self.unique_id = str(int(round(time.time() * 1000)))
 
+
+		# ------------------------------------------------------------------------------
+		#  -- PROVISIONING HOOKS EXAMPLE --
+		# Provisioning Hooks are a powerful feature for fleet provisioning. Most of the
+		# heavy lifting is performed within the cloud lambda. However, you can send
+		# device attributes to be validated by the lambda. An example is show in the line
+		# below (.hasValidAccount could be checked in the cloud against a database). 
+		# Alternatively, a serial number, geo-location, or any attribute could be sent.
+		# 
+		# -- Note: This attribute is passed up as part of the register_thing method and
+		# will be validated in your lambda's event data.
+		# ------------------------------------------------------------------------------
+		self.hasValidAccount = False
+
+
 		self.primary_MQTTClient = AWSIoTMQTTClient("fleet_provisioning_demo")
 		self.test_MQTTClient = AWSIoTMQTTClient("fleet_provisioning_demo_full_rights")
 		self.primary_MQTTClient.onMessage = self.on_message_callback
@@ -159,7 +174,6 @@ class ProvisioningHandler:
 		self.ownership_token = payload['certificateOwnershipToken']
 		
 		#register newly aquired cert
-		# ! Additional security can be added using IoTCore rules to validate the ID before activating certificate
 		self.register_thing(self.unique_id, self.ownership_token)
 		
 
@@ -176,7 +190,7 @@ class ProvisioningHandler:
 		"""
 		self.logger.info('##### CREATING THING ACTIVATING CERT #####')
 		print('##### CREATING THING ACTIVATING CERT #####')
-		register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial}}
+		register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial, "hasValidAccount": self.hasValidAccount}}
 		
 		#Register thing / activate certificate
 		self.primary_MQTTClient.publish("$aws/provisioning-templates/{}/provision/json".format(self.template_name), json.dumps(register_template), 0)
