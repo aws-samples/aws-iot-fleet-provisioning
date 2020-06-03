@@ -27,9 +27,8 @@
 # ------------------------------------------------------------------------------
 
 from provisioning_handler import ProvisioningHandler
+from utils.config_loader import Config
 from pyfiglet import Figlet
-import time
-
 
 
 if __name__ == "__main__":
@@ -37,6 +36,10 @@ if __name__ == "__main__":
 	#Set Config path
 	CONFIG_PATH = 'config.ini'
 
+    config = Config(CONFIG_PATH)
+    config_parameters = config.get_section('SETTINGS')
+    secure_cert_path = config_parameters['SECURE_CERT_PATH']
+	
 	# Demo Theater
 	f = Figlet(font='slant')
 	print(f.renderText('      F l e e t'))
@@ -44,18 +47,22 @@ if __name__ == "__main__":
 	print(f.renderText('----------'))
 
 	
-	# Provided callback for provisioning method
-	def callback(payload):
-		print(payload)
-	
-	
-	# Instantiate provisioning handler, pass in path to config
-	provisioner = ProvisioningHandler(CONFIG_PATH)
-	
-	# Call super-method to perform aquisition/activation
-	# of certs, creation of thing, etc. Returns general
-	# purpose callback at this point.
-	provisioner.get_official_certs(callback)
+    # Provided callback for provisioning method feedback.
 
+    def callback(payload):
+        print(payload)
+
+    #Check for availability of bootstrap cert 
+    try:
+        with open("{}/bootstrap-certificate.pem.crt".format(secure_cert_path)) as f:
+            # Call super-method to perform aquisition/activation
+            # of certs, creation of thing, etc. Returns general
+            # purpose callback at this point.
+            # Instantiate provisioning handler, pass in path to config
+            provisioner = ProvisioningHandler(CONFIG_PATH)
+            provisioner.get_official_certs(callback)
+
+    except IOError:
+        print("### Bootstrap cert non-existent. Official cert may already be in place.")
 		
 	
