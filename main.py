@@ -38,6 +38,7 @@ if __name__ == "__main__":
 
     config = Config(CONFIG_PATH)
     config_parameters = config.get_section('SETTINGS')
+    claim_cert = config_parameters['CLAIM_CERT']
     secure_cert_path = config_parameters['SECURE_CERT_PATH']
 	
 	# Demo Theater
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
     #Check for availability of bootstrap cert 
     try:
-        with open("{}/bootstrap-certificate.pem.crt".format(secure_cert_path)) as f:
+        with open("{}/{}".format(secure_cert_path, claim_cert)) as f:
             # Call super-method to perform aquisition/activation
             # of certs, creation of thing, etc. Returns general
             # purpose callback at this point.
