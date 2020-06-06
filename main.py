@@ -33,18 +33,18 @@ from pyfiglet import Figlet
 
 if __name__ == "__main__":
 
-	#Set Config path
-	CONFIG_PATH = 'config.ini'
+    #Set Config path
+    CONFIG_PATH = 'config.ini'
 
     config = Config(CONFIG_PATH)
     config_parameters = config.get_section('SETTINGS')
     secure_cert_path = config_parameters['SECURE_CERT_PATH']
 	
-	# Demo Theater
-	f = Figlet(font='slant')
-	print(f.renderText('      F l e e t'))
-	print(f.renderText('Provisioning'))
-	print(f.renderText('----------'))
+    # Demo Theater
+    f = Figlet(font='slant')
+    print(f.renderText('      F l e e t'))
+    print(f.renderText('Provisioning'))
+    print(f.renderText('----------'))
 
 	
     # Provided callback for provisioning method feedback.
