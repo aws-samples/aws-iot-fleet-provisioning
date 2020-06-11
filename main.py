@@ -31,38 +31,53 @@ from utils.config_loader import Config
 from pyfiglet import Figlet
 
 
+#Set Config path
+CONFIG_PATH = 'config.ini'
+
+config = Config(CONFIG_PATH)
+config_parameters = config.get_section('SETTINGS')
+secure_cert_path = config_parameters['SECURE_CERT_PATH']
+
+# Demo Theater
+f = Figlet(font='slant')
+print(f.renderText('      F l e e t'))
+print(f.renderText('Provisioning'))
+print(f.renderText('----------'))
+
+# Provided callback for provisioning method feedback.
+def callback(payload):
+    print(payload)
+
+# Used to kick off the provisioning lifecycle, exchanging the bootstrap cert for a
+# production certificate after being validated by a provisioning hook lambda.
+#
+# isRotation = True is used to rotate from one production certificate to a new production certificate. 
+# Certificates signed by AWS IoT Root CA expire on 12/31/2049. Security best practices
+# urge frequent rotation of x.509 certificates and this method (used in conjunction with
+# a cloud cert management pattern) attempt to make cert exchange easy.
+def run_provisioning(isRotation=False):
+
+    provisioner = ProvisioningHandler(CONFIG_PATH)
+
+    if isRotation:
+        provisioner.get_official_certs(callback, isRotation=True)  
+    else:
+        #Check for availability of bootstrap cert 
+        try:
+            with open("{}/bootstrap-certificate.pem.crt".format(secure_cert_path)) as f:
+                # Call super-method to perform aquisition/activation
+                # of certs, creation of thing, etc. Returns general
+                # purpose callback at this point.
+                # Instantiate provisioning handler, pass in path to config
+                provisioner.get_official_certs(callback)
+
+        except IOError:
+            print("### Bootstrap cert non-existent. Official cert may already be in place.")
+
+
 if __name__ == "__main__":
+    run_provisioning(True)
 
-	#Set Config path
-	CONFIG_PATH = 'config.ini'
 
-    config = Config(CONFIG_PATH)
-    config_parameters = config.get_section('SETTINGS')
-    secure_cert_path = config_parameters['SECURE_CERT_PATH']
-	
-	# Demo Theater
-	f = Figlet(font='slant')
-	print(f.renderText('      F l e e t'))
-	print(f.renderText('Provisioning'))
-	print(f.renderText('----------'))
-
-	
-    # Provided callback for provisioning method feedback.
-
-    def callback(payload):
-        print(payload)
-
-    #Check for availability of bootstrap cert 
-    try:
-        with open("{}/bootstrap-certificate.pem.crt".format(secure_cert_path)) as f:
-            # Call super-method to perform aquisition/activation
-            # of certs, creation of thing, etc. Returns general
-            # purpose callback at this point.
-            # Instantiate provisioning handler, pass in path to config
-            provisioner = ProvisioningHandler(CONFIG_PATH)
-            provisioner.get_official_certs(callback)
-
-    except IOError:
-        print("### Bootstrap cert non-existent. Official cert may already be in place.")
 		
 	

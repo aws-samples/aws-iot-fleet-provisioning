@@ -18,6 +18,7 @@ import logging
 import json 
 import os
 import asyncio
+import glob
 
 
 class ProvisioningHandler:
@@ -37,15 +38,16 @@ class ProvisioningHandler:
 		self.config_parameters = config.get_section('SETTINGS')
 		self.secure_cert_path = self.config_parameters['SECURE_CERT_PATH']
 		self.iot_endpoint = self.config_parameters['IOT_ENDPOINT']	
-		self.template_name = self.config_parameters['PROVISIONING_TEMPLATE_NAME']
+		self.template_name = self.config_parameters['PRODUCTION_TEMPLATE']
+		self.rotation_template = self.config_parameters['CERT_ROTATION_TEMPLATE']
 		self.claim_cert = self.config_parameters['CLAIM_CERT']
 		self.secure_key = self.config_parameters['SECURE_KEY']
 		self.root_cert = self.config_parameters['ROOT_CERT']
 	
 		# Sample Provisioning Template requests a serial number as a 
 		# seed to generate Thing names in IoTCore. Simulating here.
-		self.unique_id = str(int(round(time.time() * 1000)))
-
+		#self.unique_id = str(int(round(time.time() * 1000)))
+		self.unique_id = "1234567-abcde-fghij-klmno-1234567abc-TLS350" 
 
 		# ------------------------------------------------------------------------------
 		#  -- PROVISIONING HOOKS EXAMPLE --
@@ -58,21 +60,27 @@ class ProvisioningHandler:
 		# -- Note: This attribute is passed up as part of the register_thing method and
 		# will be validated in your lambda's event data.
 		# ------------------------------------------------------------------------------
-		self.hasValidAccount = False
 
-
-		self.primary_MQTTClient = AWSIoTMQTTClient("fleet_provisioning_demo")
-		self.test_MQTTClient = AWSIoTMQTTClient("fleet_provisioning_demo_full_rights")
+		self.primary_MQTTClient = AWSIoTMQTTClient(self.unique_id)
+		self.test_MQTTClient = AWSIoTMQTTClient(self.unique_id)
 		self.primary_MQTTClient.onMessage = self.on_message_callback
 		self.callback_returned = False
 		self.message_payload = {}
-
+		self.isRotation = False
 
 
 	def core_connect(self):
 		""" Method used to connect to connect to AWS IoTCore Service. Endpoint collected from config.
 		
 		"""
+		if self.isRotation:
+			self.logger.info('##### CONNECTING WITH EXISTING CERT #####')
+			print('##### CONNECTING WITH EXISTING CERT #####')
+			self.get_current_certs()
+		else:
+			self.logger.info('##### CONNECTING WITH PROVISIONING CLAIM CERT #####')
+			print('##### CONNECTING WITH PROVISIONING CLAIM CERT #####')
+
 		self.primary_MQTTClient.configureEndpoint(self.iot_endpoint, 8883)
 		self.primary_MQTTClient.configureCredentials("{}/{}".format(self.secure_cert_path, 
 													self.root_cert), "{}/{}".format(self.secure_cert_path, self.secure_key), 
@@ -82,9 +90,19 @@ class ProvisioningHandler:
 		self.primary_MQTTClient.configureConnectDisconnectTimeout(10)  
 		self.primary_MQTTClient.configureMQTTOperationTimeout(3) 
 		
-		self.logger.info('##### CONNECTING WITH PROVISIONING CLAIM CERT #####')
-		print('##### CONNECTING WITH PROVISIONING CLAIM CERT #####')
 		self.primary_MQTTClient.connect()
+
+	def get_current_certs(self):
+		non_bootstrap_certs = glob.glob('{}/[!boot]*.crt'.format(self.secure_cert_path))
+		non_bootstrap_key = glob.glob('{}/[!boot]*.key'.format(self.secure_cert_path))
+
+		#Get the current cert
+		if len(non_bootstrap_certs) > 0:
+			self.claim_cert = os.path.basename(non_bootstrap_certs[0])
+
+		#Get the current key
+		if len(non_bootstrap_key) > 0:
+			self.secure_key = os.path.basename(non_bootstrap_key[0])
 		
 
 	def enable_error_monitor(self):
@@ -94,15 +112,19 @@ class ProvisioningHandler:
 		self.primary_MQTTClient.subscribe("$aws/certificates/create/json/rejected", 1, callback=self.basic_callback)
 
 
-	def get_official_certs(self, callback):
+	def get_official_certs(self, callback, isRotation=False):
 		""" Initiates an async loop/call to kick off the provisioning flow.
 
 			Triggers:
 			   on_message_callback() providing the certificate payload
 		"""
+		if isRotation:
+			self.template_name = self.rotation_template
+			self.isRotation = True
+
 		return asyncio.run(self.orchestrate_provisioning_flow(callback))
 
-	async def orchestrate_provisioning_flow(self, callback):
+	async def orchestrate_provisioning_flow(self,callback):
 		# Connect to core with provision claim creds
 		self.core_connect()
 
@@ -137,9 +159,14 @@ class ProvisioningHandler:
 		
 		# A response contains acknowledgement that the provisioning template has been acted upon.
 		elif 'deviceConfiguration' in json_data:
-			self.logger.info('##### CERT ACTIVATED AND THING {} CREATED #####'.format(json_data['thingName']))
-			print('##### CERT ACTIVATED AND THING {} CREATED #####'.format(json_data['thingName']))
-			self.rotate_certs() 
+			if self.isRotation:
+				self.logger.info('##### ACTIVATION COMPLETE #####')
+				print('##### ACTIVATION COMPLETE #####')
+			else:
+				self.logger.info('##### CERT ACTIVATED AND THING {} CREATED #####'.format(json_data['thingName']))
+				print('##### CERT ACTIVATED AND THING {} CREATED #####'.format(json_data['thingName']))
+
+			self.validate_certs() 
 		else:
 			self.logger.info(json_data)
 
@@ -188,15 +215,22 @@ class ProvisioningHandler:
 		Triggers:
 			on_message_callback() - providing acknowledgement that the provisioning template was processed.
 		"""
-		self.logger.info('##### CREATING THING ACTIVATING CERT #####')
-		print('##### CREATING THING ACTIVATING CERT #####')
-		register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial, "hasValidAccount": self.hasValidAccount}}
+		if self.isRotation:
+			self.logger.info('##### VALIDATING EXPIRY & ACTIVATING CERT #####')
+			print('##### VALIDATING EXPIRY & ACTIVATING CERT #####')
+		else:
+			self.logger.info('##### CREATING THING ACTIVATING CERT #####')
+			print('##### CREATING THING ACTIVATING CERT #####')
+				
+
+
+		register_template = {"certificateOwnershipToken": token, "parameters": {"SerialNumber": serial}}
 		
 		#Register thing / activate certificate
 		self.primary_MQTTClient.publish("$aws/provisioning-templates/{}/provision/json".format(self.template_name), json.dumps(register_template), 0)
 
 
-	def rotate_certs(self):
+	def validate_certs(self):
 		"""Responsible for (re)connecting to IoTCore with the newly provisioned/activated certificate - (first class citizen cert)
 		"""
 		self.logger.info('##### CONNECTING WITH OFFICIAL CERT #####')
