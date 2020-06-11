@@ -1,5 +1,12 @@
 ## Device Fleet Provisioning with AWS IoTCore
 
+*Updates*:
+ - Now with the ability to respond to cert rotation requests. When the device has been informed it needs to rotate certificates, simply set an additional (optional) attribute isRotation = True.
+```
+provisioner.get_official_certs(callback, isRotation=True)
+```
+-------------------------------------------
+
 It can often be difficult to manage the secure provisioning of myriad IoT devices in the field. This process can often involve invasive workflow measures, qualified personnel, secure handling of sensitive information, and management of dispensed credentials. Through IoT Core, AWS Fleet Provisioning provides a service oriented, api approach to managing credentials. To learn more about these rich capabilities, read here: https://docs.aws.amazon.com/iot/latest/developerguide/iot-provision.html
 
 To aid in the adoption and utilization of the functionality mentioned above, this repo provides a reference client to illustrate how device(s) might interact with the provided services to deliver the desired experience. Specifically, the client demonstrates how a common "bootstrap" certificate (placed on n devices) can, upon a first-run experience:
