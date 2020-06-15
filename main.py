@@ -75,8 +75,6 @@ def run_provisioning(isRotation=False):
         except IOError:
             print("### Bootstrap cert non-existent. Official cert may already be in place.")
 
-
-
 if __name__ == "__main__":
     run_provisioning()
 
