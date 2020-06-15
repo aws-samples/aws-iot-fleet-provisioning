@@ -37,6 +37,7 @@ CONFIG_PATH = 'config.ini'
 config = Config(CONFIG_PATH)
 config_parameters = config.get_section('SETTINGS')
 secure_cert_path = config_parameters['SECURE_CERT_PATH']
+bootstrap_cert = config_parameters['CLAIM_CERT']
 
 # Demo Theater
 f = Figlet(font='slant')
@@ -64,7 +65,7 @@ def run_provisioning(isRotation=False):
     else:
         #Check for availability of bootstrap cert 
         try:
-            with open("{}/bootstrap-certificate.pem.crt".format(secure_cert_path)) as f:
+             with open("{}/{}".format(secure_cert_path, bootstrap_cert)) as f:
                 # Call super-method to perform aquisition/activation
                 # of certs, creation of thing, etc. Returns general
                 # purpose callback at this point.
@@ -75,9 +76,11 @@ def run_provisioning(isRotation=False):
             print("### Bootstrap cert non-existent. Official cert may already be in place.")
 
 
-if __name__ == "__main__":
-    run_provisioning(True)
 
+if __name__ == "__main__":
+    run_provisioning()
+
+    
 
 		
 	
