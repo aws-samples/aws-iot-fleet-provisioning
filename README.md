@@ -1,7 +1,8 @@
 ## Device Fleet Provisioning with AWS IoTCore
 
 *Updates*:
- - Now with the ability to respond to cert rotation requests. When the device has been informed it needs to rotate certificates, simply set an additional (optional) attribute isRotation = True.
+ - Now with the ability to respond to cert rotation requests. When the device has been informed it needs to rotate certificates, simply set an additional (optional) attribute isRotation = True. This update is used in conjunction with a cert_rotation policy specified below. This solution relies on setting a cert_issuance date in the registry when the certificate is registered. This is handled by the provisioning template. Once the device is notified, it can process the rotation through setting the flag below.
+ 
 ```
 provisioner.get_official_certs(callback, isRotation=True)
 ```
@@ -154,11 +155,38 @@ Also, if you intend to copy/paste the below policy note the arn's and change the
 }
 ```
 
+#### Sample provisioning hook where you validate the request before activating a certificate
+```
+import json
+from datetime import date
+
+provision_response = {
+    'allowProvisioning': False,
+    "parameterOverrides": {"CertDate": date.today().strftime("%m/%d/%y")}
+}
+
+
+def handler(event, context):
+
+    ########################
+    ## Stringent validation against internal API's/DB etc to validate the request before proceeding
+    ##
+    ## if event['parameters']['SerialNumber'] = "approved by company CSO":
+    ##     provision_response["allowProvisioning"] = True
+    #####################
+    
+  
+    return provision_response
+```
+
 #### Sample provisioning template JSON
 ``` json
 {
   "Parameters": {
-    "SerialNumber": {
+    "CertDate": {
+      "Type": "String"
+    },
+    "deviceId": {
       "Type": "String"
     },
     "AWS::IoT::Certificate::Id": {
@@ -177,7 +205,7 @@ Also, if you intend to copy/paste the below policy note the arn's and change the
     },
     "policy": {
       "Properties": {
-        "PolicyName": "full_citizen_role"
+        "PolicyName": "fleetprov_prod_template"
       },
       "Type": "AWS::IoT::Policy"
     },
@@ -188,26 +216,156 @@ Also, if you intend to copy/paste the below policy note the arn's and change the
         "ThingTypeName": "REPLACE"
       },
       "Properties": {
-        "AttributePayload": {},
+        "AttributePayload": {
+          "cert_issuance": {
+            "Ref": "CertDate"
+          }
+        },
         "ThingGroups": [],
         "ThingName": {
-          "Fn::Join": [
-            "",
-            [
-              "born_",
-              {
-                "Ref": "SerialNumber"
-              }
-            ]
-          ]
+          "Ref": "deviceId"
         }
       },
       "Type": "AWS::IoT::Thing"
     }
   },
-  "DeviceConfiguration": {}
+  "DeviceConfiguration": {
+  }
+}
+
+
+```
+
+#### Sample Cert Rotation Provisioning Template. Used to activate a new AWS IoT Certificate, and update the cert_issuance attribute in the registry.
+```
+{
+  "Parameters": {
+    "SerialNumber": {
+      "Type": "String"
+    },
+    "CertDate": {
+      "Type": "String"
+    },
+    "AWS::IoT::Certificate::Id": {
+      "Type": "String"
+    }
+  },
+  "Resources": {
+    "certificate": {
+      "Properties": {
+        "CertificateId": {
+          "Ref": "AWS::IoT::Certificate::Id"
+        },
+        "Status": "Active"
+      },
+      "Type": "AWS::IoT::Certificate"
+    },
+    "policy": {
+      "Properties": {
+        "PolicyName": "fleetprov_prod_template"
+      },
+      "Type": "AWS::IoT::Policy"
+    },
+    "thing": {
+      "OverrideSettings": {
+        "AttributePayload": "REPLACE",
+        "ThingGroups": "REPLACE",
+        "ThingTypeName": "REPLACE"
+      },
+      "Properties": {
+        "AttributePayload": {
+          "cert_issuance": {
+            "Ref": "CertDate"
+          }
+        },
+        "ThingGroups": [],
+        "ThingName": {
+          "Ref": "SerialNumber"
+        }
+      },
+      "Type": "AWS::IoT::Thing"
+    }
+  }
 }
 ```
+
+#### Sample AWS Lambda function used as a provisioning hook for cert rotation requests.
+```
+import json
+import boto3
+from datetime import date, timedelta
+
+client = boto3.client('iot')
+endpoint = boto3.client('iot-data')
+
+#used to validate device actually needs a new cert
+CERT_ROTATION_DAYS = 360
+
+#validation check date for registry query
+target_date = date.today()-timedelta(days=CERT_ROTATION_DAYS)
+target_date = target_date.strftime("%Y%m%d")
+
+#Set up payload with new cert issuance date
+provision_response = {'allowProvisioning': False, "parameterOverrides": {
+    "CertDate": date.today().strftime("%Y%m%d")}}
+
+
+def handler(event, context):
+
+    # Future log Cloudwatch logs
+    print("Received event: " + json.dumps(event, indent=2))
+
+    thing_name = event['parameters']['SerialNumber']
+    response = client.describe_thing(
+    thingName=thing_name)
+ 
+    try:
+      #Cross reference ID of requester with entry in registry to ensure device needs a rotation.
+      if int(response['attributes']['cert_issuance']) < int(target_date):
+        provision_response["allowProvisioning"] = True
+    except:
+      provision_response["allowProvisioning"] = False
+
+    return provision_response
+```
+
+#### Sample Lambda used by Cloudwatch as a monitoring agent to notify devices when they're due for a cert rotation
+```
+import json
+import boto3
+from datetime import date, timedelta
+
+client = boto3.client('iot')
+endpoint = boto3.client('iot-data')
+
+#Set Cert Rotation Interval
+CERT_ROTATION_DAYS = 360
+
+#Check for certificate expiry due in next 2 weeks.
+target_date = date.today()-timedelta(days=CERT_ROTATION_DAYS)
+
+#Convery to numeric format
+target_date = target_date.strftime("%Y%m%d")
+
+
+def lambda_handler(event, context):
+  
+  response = client.search_index(
+    queryString='attributes.cert_issuance<{}'.format(target_date),
+    maxResults=100)
+ 
+  for thing in response['things']:
+    endpoint.publish(
+      topic='cmd/{}'.format(thing['thingName']),
+      payload='{"msg":"rotate_cert"}'
+      )
+  
+  return {
+    'things': response['things']
+  }
+```
+
+
 
 
 ## License
