@@ -52,7 +52,7 @@ namespace AWS.IoT.FleetProvisioning.Provisioning
             // Connect to IoT Core with provision claim credentials
             _logger.LogInformation("##### CONNECTING WITH PROVISIONING CLAIM CERT #####");
             Console.WriteLine("##### CONNECTING WITH PROVISIONING CLAIM CERT #####");
-            _provisioningClient.Connect(_clientId);
+            _provisioningClient.Connect(_clientId.ToString());
 
             // Monitors topics for errors
             EnableErrorMonitor();
@@ -130,15 +130,14 @@ namespace AWS.IoT.FleetProvisioning.Provisioning
             File.WriteAllText(Path.Combine(_settings.SecureCertificatePath, _permanentCertificateKey),
                 (string) data.privateKey);
 
-            RegisterThing(_clientId.ToString(), (string) data.certificateOwnershipToken);
+            RegisterThing((string) data.certificateOwnershipToken);
         }
 
         /// <summary>
         /// Calls the fleet provisioning service responsible for acting upon instructions within device templates.
         /// </summary>
-        /// <param name="serial">unique identifier for the thing. Specified as a property in provisioning template.</param>
         /// <param name="token">The token response from certificate creation to prove ownership/immediate possession of the certs.</param>
-        private void RegisterThing(string serial, string token)
+        private void RegisterThing(string token)
         {
             _logger.LogDebug($"Within {nameof(RegisterThing)} method.");
 
@@ -150,7 +149,7 @@ namespace AWS.IoT.FleetProvisioning.Provisioning
                 certificateOwnershipToken = token,
                 parameters = new
                 {
-                    SerialNumber = serial
+                    SerialNumber = _clientId.ToString()
                 }
             };
 
@@ -170,7 +169,7 @@ namespace AWS.IoT.FleetProvisioning.Provisioning
             _logger.LogInformation("##### CONNECTING WITH OFFICIAL CERT #####");
             Console.WriteLine("##### CONNECTING WITH OFFICIAL CERT #####");
 
-            _permanentClient.Connect(Guid.NewGuid());
+            _permanentClient.Connect(ThingName);
 
             NewCertificatePublishAndSubscribe();
         }

@@ -6,8 +6,8 @@ using System.Text;
 using AWS.IoT.FleetProvisioning.Certificates;
 using AWS.IoT.FleetProvisioning.Configuration;
 using AWS.IoT.FleetProvisioning.Extensions;
-using M2Mqtt;
-using M2Mqtt.Messages;
+using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Messages;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -19,7 +19,7 @@ namespace AWS.IoT.FleetProvisioning.IoTClient
         private readonly ILogger<ProvisioningClient> _logger;
         private readonly ISettings _settings;
         private Action<string> _messageCallback;
-        private Dictionary<string, Action<string>> _subscribeCallbackDictionary = new Dictionary<string, Action<string>>();
+        private readonly Dictionary<string, Action<string>> _subscribeCallbackDictionary = new Dictionary<string, Action<string>>();
 
         public ProvisioningClient(ILogger<ProvisioningClient> logger, ISettings settings,
             ICertificateLoader certificateLoader)
@@ -41,7 +41,6 @@ namespace AWS.IoT.FleetProvisioning.IoTClient
         /// messages in one function.
         /// </summary>
         /// <param name="callback"></param>
-        /// <exception cref="NotImplementedException"></exception>
         public void OnMessage(Action<string> callback)
         {
             _logger.LogDebug($"Within {nameof(OnMessage)} method.");
@@ -51,8 +50,8 @@ namespace AWS.IoT.FleetProvisioning.IoTClient
         /// <summary>
         /// Method used to connect to connect to AWS IoTCore Service. Endpoint collected from config.
         /// </summary>
-        /// <param name="clientId"></param>
-        public void Connect(Guid clientId)
+        /// <param name="clientId">A unique identifier used for the MQTT connection</param>
+        public void Connect(string clientId)
         {
             _logger.LogDebug($"Within {nameof(Connect)} method.");
 
@@ -83,6 +82,12 @@ namespace AWS.IoT.FleetProvisioning.IoTClient
             MqttClient.Subscribe(new[] {topic}, new[] {(byte) qos});
         }
 
+        /// <summary>
+        /// Publish a new message to the desired topic with QoS.
+        /// </summary>
+        /// <param name="topic">Topic name to publish to.</param>
+        /// <param name="payload">Payload to publish.</param>
+        /// <param name="qos">Quality of Service. Could be 0 or 1.</param>
         public void Publish(string topic, object payload, int qos)
         {
             _logger.LogDebug($"Within {nameof(Publish)} method.");
@@ -97,6 +102,11 @@ namespace AWS.IoT.FleetProvisioning.IoTClient
             MqttClient.Publish(topic, Encoding.UTF8.GetBytes(message), (byte) qos, false);
         }
 
+        /// <summary>
+        /// Method used by the derived class `PermanentClient` to apply the permanent certificate.
+        /// </summary>
+        /// <param name="certificate">Name of the permanent certificate file (*.pem.crt)</param>
+        /// <param name="certificateKey">Name of the private key file (*.pem.key)</param>
         protected void UpdateClient(string certificate, string certificateKey)
         {
             MqttClient.MqttMsgPublished -= ClientOnMqttMsgPublished;
