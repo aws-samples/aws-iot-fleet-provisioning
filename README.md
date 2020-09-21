@@ -38,7 +38,7 @@ AWS Console / Edge Device
 1. Select *Create* to create your common bootstrap certificates.
 1. Choose *One Click Certificate Creation* (This will create your bootstrap cert to be placed on all devices)
 1. Download and store certificates.
-1. ! Don't forget to download a root.ca and select the button to *ACTIVATE* your certificate on the same screen.
+1. ! Don't forget to download a root.ca.pem and select the button to *ACTIVATE* your certificate on the same screen.
 
 #### Create Provisioning Template / Attach Policies
 1. In console, select *Onboard* and then *Fleet Provisioning Templates* and finally, *Create*.
@@ -47,8 +47,10 @@ AWS Console / Edge Device
 1. Select "Use the AWS IoT registry ..." to ensure the sample code works appropriately as it creates things here.
 1. Select Next
 1. Create or select the policy that you wish fully provisioned devices to have. (see sample open policy below)
+1. Select Next
+1. Enter a Thing name prefix (e.g. MyDevices_) and optionally type, groups or attributes for fully provisioned devices.
 1. Select Create Template
-1. Select the bootstrap certificate you created above and select *Attach Policy*.
+1. Select the bootstrap certificate you created above and click the *Attach Policy* button.
 1. Ignore the section on  Create IAM role to Provision devices, and select *Enable template*.
 1. Now select *close* to return to the console.
 
@@ -60,7 +62,7 @@ AWS Console / Edge Device
 1. Install python dependencies: ```pip3 install -r requirements.txt``` (requirements.txt located in solution root)
 
 #### Solution setup
-1. Take your downloaded bootstrap credentials (including root.ca) and securely store them on your device.
+1. Take your downloaded bootstrap credentials (including root.ca.pem) and securely store them on your device.
 1. Find config.ini within the solution and configure the below parameters:
 ```python
 SECURE_CERT_PATH = PATH/TO/YOUR/CERTS
@@ -68,11 +70,22 @@ ROOT_CERT = root.ca.pem
 CLAIM_CERT = xxxxxxxxxx-certificate.pem.crt
 SECURE_KEY = xxxxxxxxxx-private.pem.key
 IOT_ENDPOINT = xxxxxxxxxx-ats.iot.us-east-1.amazonaws.com
-PROVISIONING_TEMPLATE_NAME = my_template (e.g. - birthing_template)
+PRODUCTION_TEMPLATE = my_template (e.g. - birthing_template)
+CERT_ROTATION_TEMPLATE = my_certrotation_template
 ```
+
 #### Run solution (may need to use *sudo* if storing certificates in a protected dir)
 1. > python3 main.py
 
+```
+##### CONNECTING WITH PROVISIONING CLAIM CERT #####
+##### SUCCESS. SAVING KEYS TO DEVICE! #####
+##### CREATING THING ACTIVATING CERT #####
+##### CERT ACTIVATED AND THING birth_1234567-abcde-fghij-klmno-1234567abc-TLS350 CREATED #####
+##### CONNECTING WITH OFFICIAL CERT #####
+##### ACTIVATED AND TESTED CREDENTIALS (xxxxxxxxxx-private.pem.key, xxxxxxxxxx-certificate.pem.crt). #####
+##### FILES SAVED TO PATH/TO/YOUR/CERTS #####
+```
 If the solution runs without error, you should notice the new certificates saved in the same directory as the bootstrap certs. You will also notice the creation of THINGS in the IoT Registry that are activated. As this solution is only meant to demo the solution, each subsequent run will use the original bootstrap cert to request new credentials, and therefore also create another thing. Thing names are based on a dynamically generated serial number presented in the code.
 
 ### See below for examples of necessary artifacts as part of this solution:
@@ -112,7 +125,7 @@ Also, if you intend to copy/paste the below policy note the arn's and change the
     }
   ]
 }
-
+```
 
 
 
