@@ -56,7 +56,7 @@ def callback(payload):
 # Certificates signed by AWS IoT Root CA expire on 12/31/2049. Security best practices
 # urge frequent rotation of x.509 certificates and this method (used in conjunction with
 # a cloud cert management pattern) attempt to make cert exchange easy.
-def run_provisioning(isRotation=False):
+def run_provisioning(isRotation):
 
     provisioner = ProvisioningHandler(CONFIG_PATH)
 
@@ -76,7 +76,7 @@ def run_provisioning(isRotation=False):
             print("### Bootstrap cert non-existent. Official cert may already be in place.")
 
 if __name__ == "__main__":
-    run_provisioning()
+    run_provisioning(isRotation=False)
 
     
 
