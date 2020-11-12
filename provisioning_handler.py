@@ -52,7 +52,7 @@ class ProvisioningHandler:
         #  -- PROVISIONING HOOKS EXAMPLE --
         # Provisioning Hooks are a powerful feature for fleet provisioning. Most of the
         # heavy lifting is performed within the cloud lambda. However, you can send
-        # device attributes to be validated by the lambda. An example is show in the line
+        # device attributes to be validated by the lambda. An example is shown in the line
         # below (.hasValidAccount could be checked in the cloud against a database). 
         # Alternatively, a serial number, geo-location, or any attribute could be sent.
         # 
@@ -68,7 +68,7 @@ class ProvisioningHandler:
 
 
     def core_connect(self):
-        """ Method used to connect to connect to AWS IoTCore Service. Endpoint collected from config.
+        """ Method used to connect to AWS IoTCore Service. Endpoint collected from config.
         
         """
         if self.isRotation:
@@ -244,7 +244,7 @@ class ProvisioningHandler:
         ### Extract/return Ownership token
         self.ownership_token = payload['certificateOwnershipToken']
         
-        #register newly aquired cert
+        # Register newly aquired cert
         self.register_thing(self.unique_id, self.ownership_token)
         
 
