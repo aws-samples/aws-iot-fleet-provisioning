@@ -55,7 +55,7 @@ def callback(payload):
 # isRotation = True is used to rotate from one production certificate to a new production certificate. 
 # Certificates signed by AWS IoT Root CA expire on 12/31/2049. Security best practices
 # urge frequent rotation of x.509 certificates and this method (used in conjunction with
-# a cloud cert management pattern) attempt to make cert exchange easy.
+# a cloud cert management pattern) attempts to make cert exchange easy.
 def run_provisioning(isRotation):
 
     provisioner = ProvisioningHandler(CONFIG_PATH)
