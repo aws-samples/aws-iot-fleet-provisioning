@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,13 @@ namespace AWS.IoT.FleetProvisioning.Certificates
                 rsa.ImportRSAPrivateKey(privateKeyBytes, out _);
             }
 
-            return publicKey.CopyWithPrivateKey(rsa);
+            var certificateWithKey = publicKey.CopyWithPrivateKey(rsa);
+            
+            // Need to export and create new Certificate otherwise certificate will be used without secrets. 
+            // Mqtt connection will not be established and fail with Exception - System.ComponentModel.Win32Exception (0x8009030E): No credentials are available in the security package
+            var certificateBytes = certificateWithKey.Export(X509ContentType.Pfx);
+            var result = new X509Certificate2(certificateBytes);
+            return result;
         }
     }
 }
