@@ -86,7 +86,7 @@ CERT_ROTATION_TEMPLATE = my_certrotation_template
 ##### ACTIVATED AND TESTED CREDENTIALS (xxxxxxxxxx-private.pem.key, xxxxxxxxxx-certificate.pem.crt). #####
 ##### FILES SAVED TO PATH/TO/YOUR/CERTS #####
 ```
-If the solution runs without error, you should notice the new certificates saved in the same directory as the bootstrap certs. You will also notice the creation of THINGS in the IoT Registry that are activated. As this solution is only meant to demo the solution, each subsequent run will use the original bootstrap cert to request new credentials, and therefore also create another thing. Thing names are based on a dynamically generated serial number presented in the code.
+If the solution runs without error, you should notice the new certificates saved in the same directory as the bootstrap certs. You will also notice the creation of THINGS in the IoT Registry that are activated. As this solution is only meant to demo the solution, each subsequent run will use the original bootstrap cert to request new credentials, and therefore also create another thing. Thing names are created based on a hardcoded GUID-Like string (name however you'd like), alternatively, a randomly generated serial number is also shown (commented out) in the code.
 
 ### See below for examples of necessary artifacts as part of this solution:
 
