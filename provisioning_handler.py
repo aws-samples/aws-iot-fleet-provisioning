@@ -180,6 +180,9 @@ class ProvisioningHandler:
         while not self.callback_returned:
             await asyncio.sleep(0)
 
+        # stopping MQTT connections once provisioning process is completed
+        self.test_MQTTClient.disconnect()
+        self.primary_MQTTClient.disconnect()    
         return callback(self.message_payload)
 
 
