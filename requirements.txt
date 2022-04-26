@@ -1,4 +1,4 @@
 asyncio==3.4.3
 pyfiglet==0.8.post1
-awsiotsdk==1.5.2
+awsiotsdk==1.7.0
 
