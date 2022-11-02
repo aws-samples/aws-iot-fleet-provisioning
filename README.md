@@ -143,7 +143,7 @@ Also, if you intend to copy/paste the below policy note the arn's and change the
         "iot:Receive"
       ],
       "Resource": [
-        "*"
+        "<PUT DESIRED RESOURCE ARN(s) HERE.'*' may be used to showcase features but not recommended for real implementations>"
       ]
     },
     {
